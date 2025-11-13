@@ -62,6 +62,7 @@ export const TicketProvider: React.FC<Props> = ({ children }) => {
       id,
       title: payload.title,
       description: payload.description,
+      priority: payload.priority ?? 'low',
       status: payload.status ?? 'open',
       createdAt: now,
       updatedAt: now,

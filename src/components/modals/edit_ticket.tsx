@@ -1,17 +1,43 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Modal, Form, Input, Select, Button } from 'antd';
+import { useTickets } from '../../store/ticket/context';
+import { useAlertContext } from '../../store/alert';
 
 interface EditTicketModalProps {
   open: boolean;
   onCancel: () => void;
+  id: string;
 }
 
 const EditTicketModal: React.FC<EditTicketModalProps> = ({
   open,
   onCancel,
+  id,
 }) => {
   const [form] = Form.useForm();
+  const { open: openAlert } = useAlertContext();
+  const { updateTicket, saving, tickets } = useTickets();
+
+  const ticket = tickets.find((t) => t.id === id);
+
+  const handleUpdate = async (values: any) => {
+    try {
+      // const values = await form.validateFields();
+      await updateTicket(id, values);
+
+      onCancel();
+      openAlert({ message: 'Ticket successfully updated', type: 'success' });
+      form.resetFields();
+    } catch (err: any) {
+      console.log(err);
+
+      openAlert({
+        message: err.message || 'Failed to update ticket',
+        type: 'error',
+      });
+    }
+  };
 
   return (
     <Modal
@@ -21,7 +47,12 @@ const EditTicketModal: React.FC<EditTicketModalProps> = ({
       footer={null}
       centered
     >
-      <Form form={form} layout='vertical'>
+      <Form
+        form={form}
+        onFinish={handleUpdate}
+        layout='vertical'
+        initialValues={ticket}
+      >
         <Form.Item
           label='Title'
           name='title'
@@ -67,7 +98,12 @@ const EditTicketModal: React.FC<EditTicketModalProps> = ({
           <Button onClick={onCancel} htmlType='button'>
             Cancel
           </Button>
-          <Button type='primary' htmlType='submit'>
+          <Button
+            loading={saving}
+            type='primary'
+            htmlType='submit'
+            // onClick={handleUpdate}
+          >
             Update Ticket
           </Button>
         </div>
