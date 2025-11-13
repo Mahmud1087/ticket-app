@@ -7,12 +7,13 @@ import {
   Flex,
   Input,
   Select,
+  Skeleton,
   Typography,
   type MenuProps,
 } from 'antd';
 import { MoreOutlined } from '@ant-design/icons';
 import AddTicketModal from '../../components/modals/add_ticket';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import EditTicketModal from '../../components/modals/edit_ticket';
 import DeleteModal from '../../components/modals/delete_ticket';
 import { useTickets } from '../../store/ticket/context';
@@ -25,17 +26,42 @@ const TicketManagement = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-
-  // 👉 Store the selected ticket ID here
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
   const { tickets } = useTickets();
 
-  const handleChange = (value: string) => {
-    console.log(`selected ${value}`);
-  };
+  // 🧭 Search and filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
-  // ✅ Handlers to open modals with ticket ID
+  // ⏳ Loading state for skeleton
+  const [loading, setLoading] = useState(false);
+
+  // 🕒 Debounce search
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm, priorityFilter]);
+
+  // 🔍 Filtered and searched tickets
+  const filteredTickets = useMemo(() => {
+    let filtered = tickets;
+
+    if (searchTerm.trim()) {
+      filtered = filtered.filter((t) =>
+        t.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter((t) => t.priority === priorityFilter);
+    }
+
+    return filtered;
+  }, [tickets, searchTerm, priorityFilter]);
+
+  // 🧭 Handlers
   const handleEditOpen = (id: string) => {
     setSelectedTicketId(id);
     setEditOpen(true);
@@ -86,19 +112,24 @@ const TicketManagement = () => {
       <Divider />
 
       <section className='flex flex-col gap-4'>
+        {/* 🔍 Search and Filter */}
         <aside className='flex flex-col gap-4 lg:flex-row lg:justify-between'>
           <div className='w-full md:w-72'>
             <Input.Search
               placeholder='Search by title'
               size='large'
+              allowClear
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className='w-full'
             />
           </div>
+
           <Flex align='center' className='justify-between md:justify-end gap-5'>
             <h2 className='text-lg font-medium'>Filter By:</h2>
             <Select
-              defaultValue={'all'}
-              onChange={handleChange}
+              value={priorityFilter}
+              onChange={setPriorityFilter}
               style={{ width: '7rem' }}
               options={[
                 { label: 'All', value: 'all' },
@@ -110,10 +141,17 @@ const TicketManagement = () => {
           </Flex>
         </aside>
 
-        {/* ✅ Ticket List */}
+        {/* 🧩 Ticket List */}
         <section className='grid gap-3 md:grid-cols-2 lg:grid-cols-3'>
-          {tickets?.length >= 1 ? (
-            tickets.map((t) => {
+          {loading ? (
+            // 🦴 Skeleton Loader
+            Array.from({ length: 3 }).map((_, idx) => (
+              <Card key={idx} className='shadow w-full'>
+                <Skeleton active paragraph={{ rows: 3 }} />
+              </Card>
+            ))
+          ) : filteredTickets?.length >= 1 ? (
+            filteredTickets.map((t) => {
               const menuItems: MenuProps['items'] = [
                 {
                   label: (
@@ -182,7 +220,7 @@ const TicketManagement = () => {
             })
           ) : (
             <div className='flex items-center justify-center h-44 w-full text-2xl italic text-gray-500'>
-              No tickets created yet
+              No tickets found
             </div>
           )}
         </section>
