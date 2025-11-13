@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* color-scheme: light dark; */
+  /* color: rgba(255, 255, 255, 0.87);
+  background-color: #242424; 
+  */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+} */
+
+.ant-layout-header {
+  @apply px-6 lg:px-14;
+}
+
+/* Notification Styling Start */
+
+.notification-alert {
+  @apply bottom-6 fixed left-0 w-full;
+}
+
+.notification-alert-wrapper {
+  @apply flex justify-center w-full;
+}
+
+.notification-alert-msg-container {
+  @apply bg-gray-500 flex items-start gap-2 min-w-96 max-w-md px-8 py-4 rounded-lg text-sm text-white;
+}
+.notification-alert-msg-container.danger,
+.notification-alert-msg-container.error {
+  @apply bg-red-600;
+}
+.notification-alert-msg-container.success {
+  @apply bg-emerald-500;
+}
+
+/* Notification Styling Stop */
